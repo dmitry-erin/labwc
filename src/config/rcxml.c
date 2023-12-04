@@ -31,6 +31,7 @@
 #include "view.h"
 #include "window-rules.h"
 #include "workspaces.h"
+#include "theme.h"
 
 static bool in_regions;
 static bool in_usable_area_override;
@@ -119,6 +120,7 @@ fill_window_rule(char *nodename, char *content)
 {
 	if (!strcasecmp(nodename, "windowRule.windowRules")) {
 		current_window_rule = znew(*current_window_rule);
+		init_window_rule(current_window_rule);
 		wl_list_append(&rc.window_rules, &current_window_rule->link);
 		wl_list_init(&current_window_rule->actions);
 		return;
@@ -134,6 +136,8 @@ fill_window_rule(char *nodename, char *content)
 	} else if (!strcmp(nodename, "identifier")) {
 		free(current_window_rule->identifier);
 		current_window_rule->identifier = xstrdup(content);
+		wlr_log(WLR_INFO, "Identifier found: %s=\"%s\"",
+                        nodename, content);
 	} else if (!strcmp(nodename, "title")) {
 		free(current_window_rule->title);
 		current_window_rule->title = xstrdup(content);
@@ -161,6 +165,14 @@ fill_window_rule(char *nodename, char *content)
 		set_property(content, &current_window_rule->ignore_focus_request);
 	} else if (!strcasecmp(nodename, "fixedPosition")) {
 		set_property(content, &current_window_rule->fixed_position);
+
+	/* Custom border properties: color */
+	} else if (!strcasecmp(nodename, "borderColor")) {
+		parse_hexstr(content, current_window_rule->custom_border_color);
+		current_window_rule->has_custom_border = true;
+		wlr_log(WLR_DEBUG, "Custom borderColor was found in config: %s, parsed into: %f, %f, %f, %f\n",
+                        content, current_window_rule->custom_border_color[0], current_window_rule->custom_border_color[1], 
+						current_window_rule->custom_border_color[2], current_window_rule->custom_border_color[3]);
 
 	/* Actions */
 	} else if (!strcmp(nodename, "name.action")) {

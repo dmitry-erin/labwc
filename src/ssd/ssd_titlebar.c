@@ -24,6 +24,15 @@ ssd_titlebar_create(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
 	struct theme *theme = view->server->theme;
+
+	/* 1st approach: the whole theme changing */
+	struct theme custom_theme= { 0 };
+	float customColor[4];
+	if (window_rules_get_custom_border_color(view, customColor)) {
+		theme_customize_with_border_color(&custom_theme, customColor);
+		theme = &custom_theme;
+	}
+
 	int width = view->current.width;
 
 	float *color;
@@ -43,6 +52,7 @@ ssd_titlebar_create(struct ssd *ssd)
 		subtree->tree = wlr_scene_tree_create(ssd->titlebar.tree);
 		parent = subtree->tree;
 		wlr_scene_node_set_position(&parent->node, 0, -theme->title_height);
+		
 		if (subtree == &ssd->titlebar.active) {
 			color = theme->window_active_title_bg_color;
 			corner_top_left = &theme->corner_top_left_active_normal->base;
@@ -62,6 +72,18 @@ ssd_titlebar_create(struct ssd *ssd)
 			close_button_unpressed = &theme->button_close_inactive_unpressed->base;
 			wlr_scene_node_set_enabled(&parent->node, false);
 		}
+		
+		/* 2nd approach: colors changing
+		float customColor[4];
+		bool isCustomColorAvailable = window_rules_get_custom_border_color(view, customColor);
+		if (isCustomColorAvailable) {
+			color = customColor;
+			//not clear, who owns the buffer and when it gets memory free
+			corner_top_left = &theme_create_custom_corner(theme, LAB_CORNER_TOP_LEFT, color)->base;
+			corner_top_right = &theme_create_custom_corner(theme, LAB_CORNER_TOP_RIGHT, color)->base;
+		}
+		*/
+
 		wl_list_init(&subtree->parts);
 
 		/* Title */
@@ -71,7 +93,7 @@ ssd_titlebar_create(struct ssd *ssd)
 		/* Buttons */
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
-			corner_top_left, menu_button_unpressed, 0, view);
+			color, corner_top_left, menu_button_unpressed, 0, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
 			color, iconify_button_unpressed,
 			width - SSD_BUTTON_WIDTH * 3, view);
@@ -80,7 +102,7 @@ ssd_titlebar_create(struct ssd *ssd)
 			width - SSD_BUTTON_WIDTH * 2, view);
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
-			corner_top_right, close_button_unpressed,
+			color, corner_top_right, close_button_unpressed,
 			width - SSD_BUTTON_WIDTH * 1, view);
 	} FOR_EACH_END
 
@@ -111,10 +133,13 @@ set_squared_corners(struct ssd *ssd, bool enable)
 
 			/* Toggle background between invisible and titlebar background color */
 			struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(button->background);
-			wlr_scene_rect_set_color(rect, !enable ? (float[4]) {0, 0, 0, 0} : (
+			/*Check for custom color as well*/
+			float customColor[4];
+            bool isCustomColorAvailable = window_rules_get_custom_border_color(ssd->view, customColor);
+			wlr_scene_rect_set_color(rect, isCustomColorAvailable ? customColor : (!enable ? (float[4]) {0, 0, 0, 0} : (
 				subtree == &ssd->titlebar.active
 					? rc.theme->window_active_title_bg_color
-					: rc.theme->window_inactive_title_bg_color));
+					: rc.theme->window_inactive_title_bg_color)));
 
 			/* Toggle rounded corner image itself */
 			struct wlr_scene_node *rounded_corner =

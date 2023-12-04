@@ -148,42 +148,6 @@ load_buttons(struct theme *theme)
 	}
 }
 
-static int
-hex_to_dec(char c)
-{
-	if (c >= '0' && c <= '9') {
-		return c - '0';
-	}
-	if (c >= 'a' && c <= 'f') {
-		return c - 'a' + 10;
-	}
-	if (c >= 'A' && c <= 'F') {
-		return c - 'A' + 10;
-	}
-	return 0;
-}
-
-/**
- * parse_hexstr - parse #rrggbb
- * @hex: hex string to be parsed
- * @rgba: pointer to float[4] for return value
- */
-static void
-parse_hexstr(const char *hex, float *rgba)
-{
-	if (!hex || hex[0] != '#' || strlen(hex) < 7) {
-		return;
-	}
-	rgba[0] = (hex_to_dec(hex[1]) * 16 + hex_to_dec(hex[2])) / 255.0;
-	rgba[1] = (hex_to_dec(hex[3]) * 16 + hex_to_dec(hex[4])) / 255.0;
-	rgba[2] = (hex_to_dec(hex[5]) * 16 + hex_to_dec(hex[6])) / 255.0;
-	if (strlen(hex) > 7) {
-		rgba[3] = atoi(hex + 7) / 100.0;
-	} else {
-		rgba[3] = 1.0;
-	}
-}
-
 static enum lab_justification
 parse_justification(const char *str)
 {
@@ -211,7 +175,7 @@ parse_justification(const char *str)
 static void
 theme_builtin(struct theme *theme)
 {
-	theme->border_width = 1;
+	theme->border_width = 5;
 	theme->padding_height = 3;
 	theme->title_height = INT_MIN;
 	theme->menu_overlap_x = 0;
@@ -545,11 +509,7 @@ struct rounded_corner_ctx {
 	double line_width;
 	float *fill_color;
 	float *border_color;
-	enum {
-		LAB_CORNER_UNKNOWN = 0,
-		LAB_CORNER_TOP_LEFT,
-		LAB_CORNER_TOP_RIGHT,
-	} corner;
+	enum lab_corner corner;
 };
 
 static struct lab_data_buffer *
@@ -751,6 +711,28 @@ create_corners(struct theme *theme)
 	theme->corner_top_right_inactive_normal = rounded_rect(&ctx);
 }
 
+struct lab_data_buffer * theme_create_custom_corner(struct theme *theme, enum lab_corner corner, float *bg_color)
+{
+	struct wlr_box box = {
+		.x = 0,
+		.y = 0,
+		.width = SSD_BUTTON_WIDTH + theme->border_width,
+		.height = theme->title_height + theme->border_width,
+	};
+
+	struct rounded_corner_ctx ctx = {
+		.box = &box,
+		.radius = rc.corner_radius,
+		.line_width = theme->border_width,
+		.fill_color = bg_color,
+		.border_color = bg_color,
+		.corner = corner,
+	};
+
+	//not clear, who owns the buffer and when it gets memory free
+	return rounded_rect(&ctx);
+}
+
 static void
 post_processing(struct theme *theme)
 {
@@ -835,4 +817,29 @@ theme_finish(struct theme *theme)
 	theme->corner_top_left_inactive_normal = NULL;
 	theme->corner_top_right_active_normal = NULL;
 	theme->corner_top_right_inactive_normal = NULL;
+}
+
+void theme_customize_with_border_color(struct theme *theme, float *color)
+{
+	theme_builtin(theme);
+
+	/* Read <data-dir>/share/themes/$theme_name/openbox-3/themerc */
+	//theme_read(theme, theme_name);
+
+	/* Read <config-dir>/labwc/themerc-override */
+	//theme_read_override(theme);
+	
+	memcpy(theme->window_active_border_color, color, sizeof(float)*4);
+	memcpy(theme->window_inactive_border_color, color, sizeof(float)*4);
+	memcpy(theme->window_active_title_bg_color, color, sizeof(float)*4);
+	memcpy(theme->window_inactive_title_bg_color, color, sizeof(float)*4);
+	
+	//?
+	memcpy(theme->osd_bg_color, color, sizeof(float)*4);
+	memcpy(theme->osd_border_color, color, sizeof(float)*4);
+	memcpy(theme->window_toggled_keybinds_color, color, sizeof(float)*4);
+
+	post_processing(theme);
+	create_corners(theme);
+	load_buttons(theme);
 }
