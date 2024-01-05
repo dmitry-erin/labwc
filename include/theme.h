@@ -110,4 +110,13 @@ void theme_init(struct theme *theme, const char *theme_name);
  */
 void theme_finish(struct theme *theme);
 
+/**
+ * get_theme_for_view / get theme with check for cusom color
+ * @view: view data
+ * @return: struct theme
+ */
+struct theme get_theme_for_view(struct view *view);
+
+void theme_parse_hexstr(const char *hex, float *rgba);
+
 #endif /* LABWC_THEME_H */

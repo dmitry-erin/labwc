@@ -80,12 +80,11 @@ add_scene_buffer(struct wl_list *list, enum ssd_part_type type,
 
 struct ssd_part *
 add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
-		enum ssd_part_type corner_type, struct wlr_scene_tree *parent,
+		enum ssd_part_type corner_type, struct wlr_scene_tree *parent, float *bg_color,
 		struct wlr_buffer *corner_buffer, struct wlr_buffer *icon_buffer,
 		int x, struct view *view)
 {
 	int offset_x;
-	float invisible[4] = { 0, 0, 0, 0 };
 
 	if (corner_type == LAB_SSD_PART_CORNER_TOP_LEFT) {
 		offset_x = rc.theme->border_width;
@@ -107,8 +106,8 @@ add_scene_button_corner(struct wl_list *part_list, enum ssd_part_type type,
 	add_scene_buffer(part_list, corner_type, parent, corner_buffer,
 		-offset_x, -rc.theme->border_width);
 
-	/* Finally just put a usual theme button on top, using an invisible hitbox */
-	add_scene_button(part_list, type, parent, invisible, icon_buffer, 0, view);
+	/* Finally just put a usual theme button on top, using an invisible/custom colored hitbox */
+	add_scene_button(part_list, type, parent, bg_color, icon_buffer, 0, view);
 	return button_root;
 }
 

@@ -36,6 +36,8 @@
 #include "theme.h"
 #include "buffer.h"
 #include "ssd.h"
+#include "view.h"
+#include "labwc.h"
 
 struct button {
 	const char *name;
@@ -168,8 +170,8 @@ hex_to_dec(char c)
  * @hex: hex string to be parsed
  * @rgba: pointer to float[4] for return value
  */
-static void
-parse_hexstr(const char *hex, float *rgba)
+void
+theme_parse_hexstr(const char *hex, float *rgba)
 {
 	if (!hex || hex[0] != '#' || strlen(hex) < 7) {
 		return;
@@ -211,44 +213,44 @@ parse_justification(const char *str)
 static void
 theme_builtin(struct theme *theme)
 {
-	theme->border_width = 1;
+	theme->border_width = 5;
 	theme->padding_height = 3;
 	theme->menu_overlap_x = 0;
 	theme->menu_overlap_y = 0;
 
-	parse_hexstr("#dddad6", theme->window_active_border_color);
-	parse_hexstr("#f6f5f4", theme->window_inactive_border_color);
+	theme_parse_hexstr("#dddad6", theme->window_active_border_color);
+	theme_parse_hexstr("#f6f5f4", theme->window_inactive_border_color);
 
-	parse_hexstr("#ff0000", theme->window_toggled_keybinds_color);
+	theme_parse_hexstr("#ff0000", theme->window_toggled_keybinds_color);
 
-	parse_hexstr("#dddad6", theme->window_active_title_bg_color);
-	parse_hexstr("#f6f5f4", theme->window_inactive_title_bg_color);
+	theme_parse_hexstr("#dddad6", theme->window_active_title_bg_color);
+	theme_parse_hexstr("#f6f5f4", theme->window_inactive_title_bg_color);
 
-	parse_hexstr("#000000", theme->window_active_label_text_color);
-	parse_hexstr("#000000", theme->window_inactive_label_text_color);
+	theme_parse_hexstr("#000000", theme->window_active_label_text_color);
+	theme_parse_hexstr("#000000", theme->window_inactive_label_text_color);
 	theme->window_label_text_justify = parse_justification("Center");
 
-	parse_hexstr("#000000",
+	theme_parse_hexstr("#000000",
 		theme->window_active_button_menu_unpressed_image_color);
-	parse_hexstr("#000000",
+	theme_parse_hexstr("#000000",
 		theme->window_active_button_iconify_unpressed_image_color);
-	parse_hexstr("#000000",
+	theme_parse_hexstr("#000000",
 		theme->window_active_button_max_unpressed_image_color);
-	parse_hexstr("#000000",
+	theme_parse_hexstr("#000000",
 		theme->window_active_button_close_unpressed_image_color);
-	parse_hexstr("#000000",
+	theme_parse_hexstr("#000000",
 		theme->window_inactive_button_menu_unpressed_image_color);
-	parse_hexstr("#000000",
+	theme_parse_hexstr("#000000",
 		theme->window_inactive_button_iconify_unpressed_image_color);
-	parse_hexstr("#000000",
+	theme_parse_hexstr("#000000",
 		theme->window_inactive_button_max_unpressed_image_color);
-	parse_hexstr("#000000",
+	theme_parse_hexstr("#000000",
 		theme->window_inactive_button_close_unpressed_image_color);
 
-	parse_hexstr("#fcfbfa", theme->menu_items_bg_color);
-	parse_hexstr("#000000", theme->menu_items_text_color);
-	parse_hexstr("#dddad6", theme->menu_items_active_bg_color);
-	parse_hexstr("#000000", theme->menu_items_active_text_color);
+	theme_parse_hexstr("#fcfbfa", theme->menu_items_bg_color);
+	theme_parse_hexstr("#000000", theme->menu_items_text_color);
+	theme_parse_hexstr("#dddad6", theme->menu_items_active_bg_color);
+	theme_parse_hexstr("#000000", theme->menu_items_active_text_color);
 
 	theme->menu_item_padding_x = 7;
 	theme->menu_item_padding_y = 4;
@@ -259,7 +261,7 @@ theme_builtin(struct theme *theme)
 	theme->menu_separator_line_thickness = 1;
 	theme->menu_separator_padding_width = 6;
 	theme->menu_separator_padding_height = 3;
-	parse_hexstr("#888888", theme->menu_separator_color);
+	theme_parse_hexstr("#888888", theme->menu_separator_color);
 
 	theme->osd_window_switcher_width = 600;
 	theme->osd_window_switcher_padding = 4;
@@ -305,33 +307,33 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	if (match_glob(key, "window.active.border.color")) {
-		parse_hexstr(value, theme->window_active_border_color);
+		theme_parse_hexstr(value, theme->window_active_border_color);
 	}
 	if (match_glob(key, "window.inactive.border.color")) {
-		parse_hexstr(value, theme->window_inactive_border_color);
+		theme_parse_hexstr(value, theme->window_inactive_border_color);
 	}
 	/* border.color is obsolete, but handled for backward compatibility */
 	if (match_glob(key, "border.color")) {
-		parse_hexstr(value, theme->window_active_border_color);
-		parse_hexstr(value, theme->window_inactive_border_color);
+		theme_parse_hexstr(value, theme->window_active_border_color);
+		theme_parse_hexstr(value, theme->window_inactive_border_color);
 	}
 
 	if (match_glob(key, "window.active.indicator.toggled-keybind.color")) {
-		parse_hexstr(value, theme->window_toggled_keybinds_color);
+		theme_parse_hexstr(value, theme->window_toggled_keybinds_color);
 	}
 
 	if (match_glob(key, "window.active.title.bg.color")) {
-		parse_hexstr(value, theme->window_active_title_bg_color);
+		theme_parse_hexstr(value, theme->window_active_title_bg_color);
 	}
 	if (match_glob(key, "window.inactive.title.bg.color")) {
-		parse_hexstr(value, theme->window_inactive_title_bg_color);
+		theme_parse_hexstr(value, theme->window_inactive_title_bg_color);
 	}
 
 	if (match_glob(key, "window.active.label.text.color")) {
-		parse_hexstr(value, theme->window_active_label_text_color);
+		theme_parse_hexstr(value, theme->window_active_label_text_color);
 	}
 	if (match_glob(key, "window.inactive.label.text.color")) {
-		parse_hexstr(value, theme->window_inactive_label_text_color);
+		theme_parse_hexstr(value, theme->window_inactive_label_text_color);
 	}
 	if (match_glob(key, "window.label.text.justify")) {
 		theme->window_label_text_justify = parse_justification(value);
@@ -339,57 +341,57 @@ entry(struct theme *theme, const char *key, const char *value)
 
 	/* universal button */
 	if (match_glob(key, "window.active.button.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_active_button_menu_unpressed_image_color);
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_active_button_iconify_unpressed_image_color);
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_active_button_max_unpressed_image_color);
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_active_button_close_unpressed_image_color);
 	}
 	if (match_glob(key, "window.inactive.button.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_inactive_button_menu_unpressed_image_color);
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_inactive_button_iconify_unpressed_image_color);
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_inactive_button_max_unpressed_image_color);
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_inactive_button_close_unpressed_image_color);
 	}
 
 	/* individual buttons */
 	if (match_glob(key, "window.active.button.menu.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_active_button_menu_unpressed_image_color);
 	}
 	if (match_glob(key, "window.active.button.iconify.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_active_button_iconify_unpressed_image_color);
 	}
 	if (match_glob(key, "window.active.button.max.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_active_button_max_unpressed_image_color);
 	}
 	if (match_glob(key, "window.active.button.close.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_active_button_close_unpressed_image_color);
 	}
 	if (match_glob(key, "window.inactive.button.menu.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_inactive_button_menu_unpressed_image_color);
 	}
 	if (match_glob(key, "window.inactive.button.iconify.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_inactive_button_iconify_unpressed_image_color);
 	}
 	if (match_glob(key, "window.inactive.button.max.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_inactive_button_max_unpressed_image_color);
 	}
 	if (match_glob(key, "window.inactive.button.close.unpressed.image.color")) {
-		parse_hexstr(value,
+		theme_parse_hexstr(value,
 			theme->window_inactive_button_close_unpressed_image_color);
 	}
 
@@ -401,16 +403,16 @@ entry(struct theme *theme, const char *key, const char *value)
 	}
 
 	if (match_glob(key, "menu.items.bg.color")) {
-		parse_hexstr(value, theme->menu_items_bg_color);
+		theme_parse_hexstr(value, theme->menu_items_bg_color);
 	}
 	if (match_glob(key, "menu.items.text.color")) {
-		parse_hexstr(value, theme->menu_items_text_color);
+		theme_parse_hexstr(value, theme->menu_items_text_color);
 	}
 	if (match_glob(key, "menu.items.active.bg.color")) {
-		parse_hexstr(value, theme->menu_items_active_bg_color);
+		theme_parse_hexstr(value, theme->menu_items_active_bg_color);
 	}
 	if (match_glob(key, "menu.items.active.text.color")) {
-		parse_hexstr(value, theme->menu_items_active_text_color);
+		theme_parse_hexstr(value, theme->menu_items_active_text_color);
 	}
 
 	if (match_glob(key, "menu.separator.width")) {
@@ -423,17 +425,17 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->menu_separator_padding_height = atoi(value);
 	}
 	if (match_glob(key, "menu.separator.color")) {
-		parse_hexstr(value, theme->menu_separator_color);
+		theme_parse_hexstr(value, theme->menu_separator_color);
 	}
 
 	if (match_glob(key, "osd.bg.color")) {
-		parse_hexstr(value, theme->osd_bg_color);
+		theme_parse_hexstr(value, theme->osd_bg_color);
 	}
 	if (match_glob(key, "osd.border.width")) {
 		theme->osd_border_width = atoi(value);
 	}
 	if (match_glob(key, "osd.border.color")) {
-		parse_hexstr(value, theme->osd_border_color);
+		theme_parse_hexstr(value, theme->osd_border_color);
 	}
 	if (match_glob(key, "osd.window-switcher.width")) {
 		theme->osd_window_switcher_width = atoi(value);
@@ -451,7 +453,7 @@ entry(struct theme *theme, const char *key, const char *value)
 		theme->osd_window_switcher_item_active_border_width = atoi(value);
 	}
 	if (match_glob(key, "osd.label.text.color")) {
-		parse_hexstr(value, theme->osd_label_text_color);
+		theme_parse_hexstr(value, theme->osd_label_text_color);
 	}
 }
 
@@ -807,7 +809,7 @@ theme_init(struct theme *theme, const char *theme_name)
 	theme_builtin(theme);
 
 	/* Read <data-dir>/share/themes/$theme_name/openbox-3/themerc */
-	theme_read(theme, theme_name);
+	theme_read(theme, rc.theme_name);
 
 	/* Read <config-dir>/labwc/themerc-override */
 	theme_read_override(theme);
@@ -828,4 +830,38 @@ theme_finish(struct theme *theme)
 	theme->corner_top_left_inactive_normal = NULL;
 	theme->corner_top_right_active_normal = NULL;
 	theme->corner_top_right_inactive_normal = NULL;
+}
+
+struct theme
+get_theme_for_view(struct view *view)
+{
+    float * custom_color = window_rules_get_custom_border_color(view);
+    if (!custom_color) {
+        return *view->server->theme;
+    }
+
+    struct theme theme = { 0 };
+
+	theme_builtin(&theme);
+
+	/* Read <data-dir>/share/themes/$theme_name/openbox-3/themerc */
+	theme_read(&theme, rc.theme_name);
+
+	/* Read <config-dir>/labwc/themerc-override */
+	theme_read_override(&theme);
+	
+	memcpy(theme.window_active_border_color, custom_color, sizeof(float)*4);
+	memcpy(theme.window_inactive_border_color, custom_color, sizeof(float)*4);
+	memcpy(theme.window_active_title_bg_color, custom_color, sizeof(float)*4);
+	memcpy(theme.window_inactive_title_bg_color, custom_color, sizeof(float)*4);
+	
+	memcpy(theme.osd_bg_color, custom_color, sizeof(float)*4);
+	memcpy(theme.osd_border_color, custom_color, sizeof(float)*4);
+	memcpy(theme.window_toggled_keybinds_color, custom_color, sizeof(float)*4);
+
+	post_processing(&theme);
+	create_corners(&theme);
+	load_buttons(&theme);
+
+    return theme;
 }
