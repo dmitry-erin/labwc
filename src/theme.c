@@ -148,6 +148,42 @@ load_buttons(struct theme *theme)
 	}
 }
 
+static int
+hex_to_dec(char c)
+{
+	if (c >= '0' && c <= '9') {
+		return c - '0';
+	}
+	if (c >= 'a' && c <= 'f') {
+		return c - 'a' + 10;
+	}
+	if (c >= 'A' && c <= 'F') {
+		return c - 'A' + 10;
+	}
+	return 0;
+}
+
+/**
+ * parse_hexstr - parse #rrggbb
+ * @hex: hex string to be parsed
+ * @rgba: pointer to float[4] for return value
+ */
+void
+parse_hexstr(const char *hex, float *rgba)
+{
+	if (!hex || hex[0] != '#' || strlen(hex) < 7) {
+		return;
+	}
+	rgba[0] = (hex_to_dec(hex[1]) * 16 + hex_to_dec(hex[2])) / 255.0;
+	rgba[1] = (hex_to_dec(hex[3]) * 16 + hex_to_dec(hex[4])) / 255.0;
+	rgba[2] = (hex_to_dec(hex[5]) * 16 + hex_to_dec(hex[6])) / 255.0;
+	if (strlen(hex) > 7) {
+		rgba[3] = atoi(hex + 7) / 100.0;
+	} else {
+		rgba[3] = 1.0;
+	}
+}
+
 static enum lab_justification
 parse_justification(const char *str)
 {
@@ -796,7 +832,7 @@ theme_init(struct theme *theme, const char *theme_name)
 	theme_builtin(theme);
 
 	/* Read <data-dir>/share/themes/$theme_name/openbox-3/themerc */
-	theme_read(theme, theme_name);
+	theme_read(theme, rc.theme_name);
 
 	/* Read <config-dir>/labwc/themerc-override */
 	theme_read_override(theme);
@@ -824,17 +860,16 @@ void theme_customize_with_border_color(struct theme *theme, float *color)
 	theme_builtin(theme);
 
 	/* Read <data-dir>/share/themes/$theme_name/openbox-3/themerc */
-	//theme_read(theme, theme_name);
+	theme_read(theme, rc.theme_name);
 
 	/* Read <config-dir>/labwc/themerc-override */
-	//theme_read_override(theme);
+	theme_read_override(theme);
 	
 	memcpy(theme->window_active_border_color, color, sizeof(float)*4);
 	memcpy(theme->window_inactive_border_color, color, sizeof(float)*4);
 	memcpy(theme->window_active_title_bg_color, color, sizeof(float)*4);
 	memcpy(theme->window_inactive_title_bg_color, color, sizeof(float)*4);
 	
-	//?
 	memcpy(theme->osd_bg_color, color, sizeof(float)*4);
 	memcpy(theme->osd_border_color, color, sizeof(float)*4);
 	memcpy(theme->window_toggled_keybinds_color, color, sizeof(float)*4);

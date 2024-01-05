@@ -36,7 +36,7 @@ ssd_border_create(struct ssd *ssd)
 		parent = subtree->tree;
 
 		/* 1st approach: the whole theme changing */
-		struct theme custom_theme= { 0 };
+		struct theme custom_theme = { 0 };
 		float customColor[4];
 		if (window_rules_get_custom_border_color(view, customColor)) {
 			theme_customize_with_border_color(&custom_theme, customColor);

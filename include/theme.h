@@ -131,40 +131,6 @@ struct lab_data_buffer * theme_create_custom_corner(struct theme *theme, enum la
  */
 void theme_customize_with_border_color(struct theme *theme, float *color);
 
-static int
-hex_to_dec(char c)
-{
-	if (c >= '0' && c <= '9') {
-		return c - '0';
-	}
-	if (c >= 'a' && c <= 'f') {
-		return c - 'a' + 10;
-	}
-	if (c >= 'A' && c <= 'F') {
-		return c - 'A' + 10;
-	}
-	return 0;
-}
-
-/**
- * parse_hexstr - parse #rrggbb
- * @hex: hex string to be parsed
- * @rgba: pointer to float[4] for return value
- */
-static void
-parse_hexstr(const char *hex, float *rgba)
-{
-	if (!hex || hex[0] != '#' || strlen(hex) < 7) {
-		return;
-	}
-	rgba[0] = (hex_to_dec(hex[1]) * 16 + hex_to_dec(hex[2])) / 255.0;
-	rgba[1] = (hex_to_dec(hex[3]) * 16 + hex_to_dec(hex[4])) / 255.0;
-	rgba[2] = (hex_to_dec(hex[5]) * 16 + hex_to_dec(hex[6])) / 255.0;
-	if (strlen(hex) > 7) {
-		rgba[3] = atoi(hex + 7) / 100.0;
-	} else {
-		rgba[3] = 1.0;
-	}
-}
+void parse_hexstr(const char *hex, float *rgba);
 
 #endif /* LABWC_THEME_H */
