@@ -25,7 +25,9 @@ void
 ssd_titlebar_create(struct ssd *ssd)
 {
 	struct view *view = ssd->view;
-	struct theme *theme = view->server->theme;
+	/* Here the whole theme changing is more preferable */
+	struct theme theme = get_theme_for_view(view);
+
 	int width = view->current.width;
 
 	float *color;
@@ -53,49 +55,50 @@ ssd_titlebar_create(struct ssd *ssd)
 		parent = subtree->tree;
 		wlr_scene_node_set_position(&parent->node, 0, -theme->title_height);
 		if (subtree == &ssd->titlebar.active) {
-			color = theme->window_active_title_bg_color;
-			corner_top_left = &theme->corner_top_left_active_normal->base;
-			corner_top_right = &theme->corner_top_right_active_normal->base;
-			menu_button_unpressed = &theme->button_menu_active_unpressed->base;
-			iconify_button_unpressed = &theme->button_iconify_active_unpressed->base;
-			close_button_unpressed = &theme->button_close_active_unpressed->base;
-			maximize_button_unpressed = &theme->button_maximize_active_unpressed->base;
-			restore_button_unpressed = &theme->button_restore_active_unpressed->base;
+			color = theme.window_active_title_bg_color;
+			corner_top_left = &theme.corner_top_left_active_normal->base;
+			corner_top_right = &theme.corner_top_right_active_normal->base;
+			menu_button_unpressed = &theme.button_menu_active_unpressed->base;
+			iconify_button_unpressed = &theme.button_iconify_active_unpressed->base;
+			close_button_unpressed = &theme.button_close_active_unpressed->base;
+			maximize_button_unpressed = &theme.button_maximize_active_unpressed->base;
+			restore_button_unpressed = &theme.button_restore_active_unpressed->base;
 
-			menu_button_hover = &theme->button_menu_active_hover->base;
-			iconify_button_hover = &theme->button_iconify_active_hover->base;
-			close_button_hover = &theme->button_close_active_hover->base;
-			maximize_button_hover = &theme->button_maximize_active_hover->base;
-			restore_button_hover = &theme->button_restore_active_hover->base;
+			menu_button_hover = &theme.button_menu_active_hover->base;
+			iconify_button_hover = &theme.button_iconify_active_hover->base;
+			close_button_hover = &theme.button_close_active_hover->base;
+			maximize_button_hover = &theme.button_maximize_active_hover->base;
+			restore_button_hover = &theme.button_restore_active_hover->base;
 		} else {
-			color = theme->window_inactive_title_bg_color;
-			corner_top_left = &theme->corner_top_left_inactive_normal->base;
-			corner_top_right = &theme->corner_top_right_inactive_normal->base;
-			menu_button_unpressed = &theme->button_menu_inactive_unpressed->base;
-			iconify_button_unpressed = &theme->button_iconify_inactive_unpressed->base;
+			color = theme.window_inactive_title_bg_color;
+			corner_top_left = &theme.corner_top_left_inactive_normal->base;
+			corner_top_right = &theme.corner_top_right_inactive_normal->base;
+			menu_button_unpressed = &theme.button_menu_inactive_unpressed->base;
+			iconify_button_unpressed = &theme.button_iconify_inactive_unpressed->base;
 			maximize_button_unpressed =
-				&theme->button_maximize_inactive_unpressed->base;
-			restore_button_unpressed = &theme->button_restore_inactive_unpressed->base;
-			close_button_unpressed = &theme->button_close_inactive_unpressed->base;
+				&theme.button_maximize_inactive_unpressed->base;
+			restore_button_unpressed = &theme.button_restore_inactive_unpressed->base;
+			close_button_unpressed = &theme.button_close_inactive_unpressed->base;
 
-			menu_button_hover = &theme->button_menu_inactive_hover->base;
-			iconify_button_hover = &theme->button_iconify_inactive_hover->base;
-			close_button_hover = &theme->button_close_inactive_hover->base;
-			maximize_button_hover = &theme->button_maximize_inactive_hover->base;
-			restore_button_hover = &theme->button_restore_inactive_hover->base;
+			menu_button_hover = &theme.button_menu_inactive_hover->base;
+			iconify_button_hover = &theme.button_iconify_inactive_hover->base;
+			close_button_hover = &theme.button_close_inactive_hover->base;
+			maximize_button_hover = &theme.button_maximize_inactive_hover->base;
+			restore_button_hover = &theme.button_restore_inactive_hover->base;
 
 			wlr_scene_node_set_enabled(&parent->node, false);
 		}
+
 		wl_list_init(&subtree->parts);
 
 		/* Title */
 		add_scene_rect(&subtree->parts, LAB_SSD_PART_TITLEBAR, parent,
-			width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT, theme->title_height,
+			width - SSD_BUTTON_WIDTH * SSD_BUTTON_COUNT, theme.title_height,
 			SSD_BUTTON_WIDTH, 0, color);
 		/* Buttons */
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_WINDOW_MENU, LAB_SSD_PART_CORNER_TOP_LEFT, parent,
-			corner_top_left, menu_button_unpressed, menu_button_hover, 0, view);
+			color, corner_top_left, menu_button_unpressed, menu_button_hover, 0, view);
 		add_scene_button(&subtree->parts, LAB_SSD_BUTTON_ICONIFY, parent,
 			color, iconify_button_unpressed, iconify_button_hover,
 			width - SSD_BUTTON_WIDTH * 3, view);
@@ -106,7 +109,7 @@ ssd_titlebar_create(struct ssd *ssd)
 			restore_button_unpressed, restore_button_hover);
 		add_scene_button_corner(&subtree->parts,
 			LAB_SSD_BUTTON_CLOSE, LAB_SSD_PART_CORNER_TOP_RIGHT, parent,
-			corner_top_right, close_button_unpressed, close_button_hover,
+			color, corner_top_right, close_button_unpressed, close_button_hover,
 			width - SSD_BUTTON_WIDTH * 1, view);
 	} FOR_EACH_END
 
@@ -138,11 +141,16 @@ set_squared_corners(struct ssd *ssd, bool enable)
 			struct ssd_button *button = node_ssd_button_from_node(part->node);
 
 			/* Toggle background between invisible and titlebar background color */
-			struct wlr_scene_rect *rect = wlr_scene_rect_from_node(button->background);
-			wlr_scene_rect_set_color(rect, !enable ? (float[4]) {0, 0, 0, 0} : (
-				subtree == &ssd->titlebar.active
-					? rc.theme->window_active_title_bg_color
-					: rc.theme->window_inactive_title_bg_color));
+			struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(button->background);
+			/*Check for custom color as well*/
+			float custom_color[4];
+			bool is_custom_color_available =
+				window_rules_get_custom_border_color(ssd->view, custom_color);
+			wlr_scene_rect_set_color(rect, is_custom_color_available ? custom_color
+				: (!enable ? (float[4]) {0, 0, 0, 0}
+					: (subtree == &ssd->titlebar.active
+						? rc.theme->window_active_title_bg_color
+						: rc.theme->window_inactive_title_bg_color)));
 
 			/* Toggle rounded corner image itself */
 			struct wlr_scene_node *rounded_corner =

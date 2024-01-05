@@ -74,6 +74,16 @@ view_matches_criteria(struct window_rule *rule, struct view *view)
 }
 
 void
+init_window_rule(struct window_rule *rule)
+{
+	if (!rule) {
+		return;
+	}
+	rule->has_custom_border = false;
+	memset(rule->custom_border_color, 0, sizeof(float)*4);
+}
+
+void
 window_rules_apply(struct view *view, enum window_rule_event event)
 {
 	struct window_rule *rule;
@@ -134,4 +144,22 @@ window_rules_get_property(struct view *view, const char *property)
 		}
 	}
 	return LAB_PROP_UNSPECIFIED;
+}
+
+bool
+window_rules_get_custom_border_color(struct view *view, float *rgba)
+{
+	struct window_rule *rule;
+	wl_list_for_each_reverse(rule, &rc.window_rules, link) {
+		if (view_matches_criteria(rule, view)) {
+			if (rule->has_custom_border) {
+				memcpy(rgba, rule->custom_border_color, sizeof(float)*4);
+				wlr_log(WLR_DEBUG,
+					"Custom color was found in window rules list: %f, %f, %f, %f\n",
+					rgba[0], rgba[1], rgba[2], rgba[3]);
+				return true;
+			}
+		}
+	}
+	return false;
 }

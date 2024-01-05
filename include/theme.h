@@ -128,4 +128,14 @@ void theme_init(struct theme *theme, const char *theme_name);
  */
 void theme_finish(struct theme *theme);
 
+void theme_parse_hexstr(const char *hex, float *rgba);
+
+/**
+ * get_theme_for_view - get theme with check for custom color
+ * @view: view data
+ * @return: theme struct
+ */
+struct theme
+get_theme_for_view(struct view *view)
+
 #endif /* LABWC_THEME_H */

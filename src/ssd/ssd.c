@@ -358,9 +358,13 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 		return;
 	}
 
-	float *color = enable
-		? rc.theme->window_toggled_keybinds_color
-		: rc.theme->window_active_border_color;
+	float custom_color[4];
+	bool is_custom_color_available =
+		window_rules_get_custom_border_color(ssd->view, custom_color);
+
+	float *color = is_custom_color_available ? custom_color :
+		(enable ? rc.theme->window_toggled_keybinds_color
+				: rc.theme->window_active_border_color);
 
 	struct ssd_part *part = ssd_get_part(&ssd->border.active.parts, LAB_SSD_PART_TOP);
 	struct wlr_scene_rect *rect = wlr_scene_rect_from_node(part->node);
