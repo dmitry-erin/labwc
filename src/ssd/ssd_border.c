@@ -36,10 +36,8 @@ ssd_border_create(struct ssd *ssd)
 		parent = subtree->tree;
 
 		/* Here the color changing is enough */
-		float custom_color[4];
-		bool is_custom_color_available =
-			window_rules_get_custom_border_color(view, custom_color);
-		if (is_custom_color_available) {
+		float *custom_color = window_rules_get_custom_border_color(view);
+		if (custom_color) {
 			color = custom_color;
 		} else {
 			if (subtree == &ssd->border.active) {

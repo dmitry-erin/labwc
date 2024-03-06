@@ -38,7 +38,7 @@
 #include "ssd.h"
 #include "view.h"
 #include "labwc.h"
-
+#include "window-rules.h"
 struct button {
 	const char *name;
 	const char *alt_name;
@@ -1048,8 +1048,8 @@ theme_finish(struct theme *theme)
 struct theme
 get_theme_for_view(struct view *view)
 {
-	float custom_color[4];
-	if (!window_rules_get_custom_border_color(view, custom_color)) {
+	float *custom_color = window_rules_get_custom_border_color(view);
+	if (!custom_color) {
 		return *view->server->theme;
 	}
 

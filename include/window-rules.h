@@ -42,17 +42,14 @@ struct window_rule {
 
 struct view;
 
-void init_window_rule(struct window_rule *rule);
-
 void window_rules_apply(struct view *view, enum window_rule_event event);
 enum property window_rules_get_property(struct view *view, const char *property);
 
 /**
  * window_rules_get_custom_border_color - check for presence of custom color in window rules
  * @view: view data
- * @color: pointer to color array, where custom color will be copied to
- * @return: true if color was found or false if not
+ * @return: pointer to custom color or NULL if there is no custom color
  */
-bool window_rules_get_custom_border_color(struct view *view, float *rgba);
+float *window_rules_get_custom_border_color(struct view *view);
 
 #endif /* LABWC_WINDOW_RULES_H */

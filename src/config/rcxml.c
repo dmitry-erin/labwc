@@ -123,7 +123,6 @@ fill_window_rule(char *nodename, char *content)
 {
 	if (!strcasecmp(nodename, "windowRule.windowRules")) {
 		current_window_rule = znew(*current_window_rule);
-		init_window_rule(current_window_rule);
 		wl_list_append(&rc.window_rules, &current_window_rule->link);
 		wl_list_init(&current_window_rule->actions);
 		return;
@@ -172,12 +171,6 @@ fill_window_rule(char *nodename, char *content)
 	} else if (!strcasecmp(nodename, "borderColor")) {
 		theme_parse_hexstr(content, current_window_rule->custom_border_color);
 		current_window_rule->has_custom_border = true;
-		wlr_log(WLR_DEBUG,
-			"Custom borderColor was found in config: %s, parsed into: %f, %f, %f, %f\n",
-			content, current_window_rule->custom_border_color[0],
-			current_window_rule->custom_border_color[1],
-			current_window_rule->custom_border_color[2],
-			current_window_rule->custom_border_color[3]);
 
 	/* Actions */
 	} else if (!strcmp(nodename, "name.action")) {

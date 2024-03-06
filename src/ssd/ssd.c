@@ -13,6 +13,7 @@
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
+#include "window-rules.h"
 
 struct border
 ssd_thickness(struct view *view)
@@ -358,11 +359,9 @@ ssd_enable_keybind_inhibit_indicator(struct ssd *ssd, bool enable)
 		return;
 	}
 
-	float custom_color[4];
-	bool is_custom_color_available =
-		window_rules_get_custom_border_color(ssd->view, custom_color);
+	float *custom_color = window_rules_get_custom_border_color(ssd->view);
 
-	float *color = is_custom_color_available ? custom_color :
+	float *color = custom_color ? custom_color :
 		(enable ? rc.theme->window_toggled_keybinds_color
 				: rc.theme->window_active_border_color);
 

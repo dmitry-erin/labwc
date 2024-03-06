@@ -13,6 +13,7 @@
 #include "ssd-internal.h"
 #include "theme.h"
 #include "view.h"
+#include "window-rules.h"
 
 #define FOR_EACH_STATE(ssd, tmp) FOR_EACH(tmp, \
 	&(ssd)->titlebar.active, \
@@ -53,7 +54,7 @@ ssd_titlebar_create(struct ssd *ssd)
 	FOR_EACH_STATE(ssd, subtree) {
 		subtree->tree = wlr_scene_tree_create(ssd->titlebar.tree);
 		parent = subtree->tree;
-		wlr_scene_node_set_position(&parent->node, 0, -theme->title_height);
+		wlr_scene_node_set_position(&parent->node, 0, -theme.title_height);
 		if (subtree == &ssd->titlebar.active) {
 			color = theme.window_active_title_bg_color;
 			corner_top_left = &theme.corner_top_left_active_normal->base;
@@ -141,16 +142,19 @@ set_squared_corners(struct ssd *ssd, bool enable)
 			struct ssd_button *button = node_ssd_button_from_node(part->node);
 
 			/* Toggle background between invisible and titlebar background color */
-			struct wlr_scene_rect *rect = lab_wlr_scene_get_rect(button->background);
+			struct wlr_scene_rect *rect = wlr_scene_rect_from_node(button->background);
 			/*Check for custom color as well*/
-			float custom_color[4];
-			bool is_custom_color_available =
-				window_rules_get_custom_border_color(ssd->view, custom_color);
-			wlr_scene_rect_set_color(rect, is_custom_color_available ? custom_color
-				: (!enable ? (float[4]) {0, 0, 0, 0}
+			float *custom_color = window_rules_get_custom_border_color(ssd->view);
+			float *rect_color;
+			if (custom_color) {
+				rect_color = custom_color;
+			} else {
+				rect_color = !enable ? (float[4]) {0, 0, 0, 0}
 					: (subtree == &ssd->titlebar.active
-						? rc.theme->window_active_title_bg_color
-						: rc.theme->window_inactive_title_bg_color)));
+							? rc.theme->window_active_title_bg_color
+							: rc.theme->window_inactive_title_bg_color);
+			}
+			wlr_scene_rect_set_color(rect, rect_color);
 
 			/* Toggle rounded corner image itself */
 			struct wlr_scene_node *rounded_corner =
